@@ -5,9 +5,20 @@
 // Flock object
 // Does very little, simply manages the array of all the boids
 
+var cellSize = 40;
+var cols;
+var rows;
+
 function Flock() {
     // An array for all the boids
-    this.grid = [];
+    cols = height / cellSize;
+    rows = width / cellSize;
+    this.grid = [,];
+    for (var j = 0; j < rows; j++) {
+        for (var i = 0; i < cols; i++) {
+            this.grid[j,i] = undefined;
+        }
+    }
     this.boids = []; // Initialize the array
 }
 
@@ -15,10 +26,18 @@ Flock.prototype.run = function() {
     for (var i = 0; i < this.boids.length; i++) {
         this.boids[i].run(this.boids); // Passing the entire list of boids to each boid individually
     }
+    this.updateGrid();
 }
 
 Flock.prototype.addBoid = function(b) {
     this.boids.push(b);
+    this.updateGrid();
+}
+
+Flock.prototype.updateGrid = function(){
+    for (var i = 0; i < this.boids.length; i++) {
+        this.boids[i].updateGrid(this.grid);
+    }
 }
 
 // The Nature of Code
@@ -55,13 +74,19 @@ Boid.prototype.flock = function(boids) {
     var ali = this.align(boids); // Alignment
     var coh = this.cohesion(boids); // Cohesion
     // Arbitrarily weight these forces
-    sep.mult(1.5);
-    ali.mult(1.0);
-    coh.mult(1.0);
+    sep.mult(sliderSep.value());
+    ali.mult(sliderAli.value());
+    coh.mult(sliderCoh.value());
     // Add the force vectors to acceleration
     this.applyForce(sep);
     this.applyForce(ali);
     this.applyForce(coh);
+}
+
+Boid.prototype.updateGrid = function(grid) {
+    var currentRow = floor(this.position.y / cellSize);
+    var currentCol = floor(this.position.x / cellSize);
+    grid[currentRow,currentCol] = this;
 }
 
 // Method to update location
